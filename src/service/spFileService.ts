@@ -168,12 +168,16 @@ export class SPFileService{
     public uploadFilesToServer(publishingInfo : IPublishingAction) : Promise<any> {
 
         if( this._config.authenticationType === Constants.SECURITY_MODERN ){
-            if( !UrlHelper.isFile(publishingInfo.contentUri) ){
-                return Promise.reject('Publishing an arbitrary folder is not supported with Modern authentication. Use "SPGo: Publish local workspace" instead.');
-            }
-
             let fileUri : Uri = UrlHelper.getServerRelativeFileUri(publishingInfo.contentUri, this._config);
             let coreOptions : ICoreOptions = this.buildCoreUploadOptions(fileUri, publishingInfo);
+
+            if( !UrlHelper.isFile(publishingInfo.contentUri) ){
+                // Convention: publishing a folder means "send everything under it, recursively" -
+                // no glob filtering, since there's no configured pattern for an ad-hoc folder pick.
+                Logger.outputMessage(`Publishing folder recursively:  ${publishingInfo.contentUri}`, vscode.window.spgo.outputChannel);
+                return this._fileGateway.uploadFolderModern(publishingInfo.contentUri, fileUri, null, coreOptions.checkin, coreOptions['checkinType'] || 0, publishingInfo.message);
+            }
+
             let fileBuffer : Buffer = fse.readFileSync(publishingInfo.contentUri);
 
             return this._fileGateway.uploadFileModern(fileUri, fileBuffer, coreOptions.checkin, coreOptions['checkinType'] || 0, publishingInfo.message);

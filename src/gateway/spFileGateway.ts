@@ -148,14 +148,18 @@ export class SPFileGateway implements IFileGateway{
     // Modern Authentication equivalent of publishWorkspace()'s bulk upload - walks the local
     // folder, filters against the configured glob patterns (same glob-to-regexp already used
     // by DownloadFileOptionsFactory), and uploads each match via @pnp/sp's chunked upload.
+    // globPatterns is optional - pass null/empty to upload everything under localRoot
+    // unfiltered (right-click "publish" on an arbitrary folder: send it all, recursively).
     public uploadFolderModern(localRoot : string, remoteFolderUri : Uri, globPatterns : string[], checkin : boolean, checkinType : number, checkinMessage : string) : Promise<any>{
 
         let sharePointSiteUrl : Uri = WorkspaceHelper.getSiteUriForActiveWorkspace(remoteFolderUri.toString(), this._config);
         let sp : SPFI = PnpService.getSp(sharePointSiteUrl.toString(), this._config);
-        let matchers : RegExp[] = globPatterns.map(pattern => globToRegExp(pattern, { flags: 'i', globstar: true }));
+        let matchers : RegExp[] = (globPatterns && globPatterns.length)
+            ? globPatterns.map(pattern => globToRegExp(pattern, { flags: 'i', globstar: true }))
+            : null;
 
         let localFiles : string[] = this.walkLocalFiles(localRoot)
-            .filter(filePath => matchers.some(re => re.test(path.relative(localRoot, filePath).replace(/\\/g, '/'))));
+            .filter(filePath => !matchers || matchers.some(re => re.test(path.relative(localRoot, filePath).replace(/\\/g, '/'))));
 
         return Promise.all(localFiles.map(filePath => {
             let relative : string = path.relative(localRoot, filePath).replace(/\\/g, '/');

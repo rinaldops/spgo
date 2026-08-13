@@ -60,11 +60,10 @@ Non-file operations (check out, delete, get server version, discard checkout) do
 PnPjs - they're small enough that they still go directly through a Bearer-token request
 (`src/util/bearerSPRequest.ts`).
 
-## Known gaps
-
-Publishing an arbitrary folder via right-click (as opposed to `SPGo: Publish local workspace`,
-which publishes your whole configured `publishWorkspaceOptions`) is not supported under Modern
-authentication - publish the folder's files individually, or use the workspace-wide command.
+Right-clicking a folder and choosing "Publish a major/minor version" publishes everything
+under it, recursively, with no glob filtering - unlike `SPGo: Publish local workspace`, which
+matches against the `globPattern` you configured, this convention has no configured pattern to
+go by, so it sends every file it finds.
 
 ## Testing tenant/app access before using the extension
 
