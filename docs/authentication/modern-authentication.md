@@ -47,13 +47,24 @@ tenant-specific authority (the multi-tenant `organizations`/`common` endpoints f
 `AADSTS50059`), which is why this can't just be skipped. Set it explicitly only if
 auto-resolution fails or you need to target a different tenant than the site implies.
 
+## How file operations work under this mode
+
+`spsave`/`sppull` have no OAuth/MFA strategy, so none of SPGo's file-transfer commands go
+through them when `authenticationType` is `Modern`. Instead they go through
+[PnPjs](https://pnp.github.io/pnpjs/) (`@pnp/sp`), configured with a custom device-code auth
+behavior (`src/service/pnpService.ts`) that reuses the same login already implemented in
+`ModernAuthService`. This includes bulk folder operations - `SPGo: Populate local workspace`,
+`SPGo: Retrieve folder`, and `SPGo: Publish local workspace` all work under Modern auth.
+
+Non-file operations (check out, delete, get server version, discard checkout) don't need
+PnPjs - they're small enough that they still go directly through a Bearer-token request
+(`src/util/bearerSPRequest.ts`).
+
 ## Known gaps
 
-Bulk folder operations (`SPGo: Populate local workspace`, `SPGo: Retrieve folder`,
-`SPGo: Publish local workspace`) still go through `sppull`/`spsave`, which have no OAuth/MFA
-strategy, and are **not yet supported** under Modern authentication - they will reject with a
-clear error. Per-file commands (check out, get server version, compare with server, publish
-major/minor, delete, discard checkout) are fully supported.
+Publishing an arbitrary folder via right-click (as opposed to `SPGo: Publish local workspace`,
+which publishes your whole configured `publishWorkspaceOptions`) is not supported under Modern
+authentication - publish the folder's files individually, or use the workspace-wide command.
 
 ## Testing tenant/app access before using the extension
 

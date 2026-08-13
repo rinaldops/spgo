@@ -80,9 +80,12 @@ export interface IFileGateway {
     undoCheckOutFile(fileUri : Uri, spr : ISPRequest ) : Promise<any>;
     uploadFiles(coreOptions : ICoreOptions, credentials : IAuthOptions, fileOptions : FileOptions) : Promise<any>;
 
-    // Modern Authentication (Bearer token) equivalents - bypass spsave/sppull, which have no OAuth/MFA strategy.
-    uploadFileModern(fileUri : Uri, fileBuffer : Buffer, spr : ISPRequest, checkin : boolean, checkinType : number, checkinMessage : string) : Promise<any>;
-    downloadFileModern(fileUri : Uri, spr : ISPRequest, localDestPath : string) : Promise<any>;
+    // Modern Authentication (@pnp/sp, device-code/MFA) equivalents - bypass spsave/sppull,
+    // which have no OAuth/MFA strategy.
+    uploadFileModern(fileUri : Uri, fileBuffer : Buffer, checkin : boolean, checkinType : number, checkinMessage : string) : Promise<any>;
+    downloadFileModern(fileUri : Uri, localDestPath : string) : Promise<any>;
+    uploadFolderModern(localRoot : string, remoteFolderUri : Uri, globPatterns : string[], checkin : boolean, checkinType : number, checkinMessage : string) : Promise<any>;
+    downloadFolderModern(remoteFolderUri : Uri, localDestRoot : string) : Promise<any>;
 }
 
 export interface IPublishingAction{
