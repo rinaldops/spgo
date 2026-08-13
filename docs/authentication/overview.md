@@ -10,6 +10,7 @@ SPGo supports the following authentication schemes.
 * [Application Password](/spgo/authentication/app-password-authentication)
 * [Digest (Office365)](/spgo/authentication/digest-authentication)
 * [Forms](/spgo/authentication/forms-authentication)
+* [Modern (OAuth / MFA) - fork only](/spgo/authentication/modern-authentication)
 * [NTLM v1 (most on-premise installations)](/spgo/authentication/ntlm-authentication)
 * [NTLM v1 + wwwAuth](/spgo/authentication/ntlm-with-www-authentication)
 * [NTLM v2](/spgo/authentication/ntlm-v2-authentication)

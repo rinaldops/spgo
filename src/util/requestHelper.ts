@@ -10,6 +10,7 @@ import * as spRequest from 'sp-request';
 
 import {IAppManager, IConfig} from './../spgo';
 import {Constants} from './../constants';
+import {BearerSPRequest} from './bearerSPRequest';
 
 export class RequestHelper {
 
@@ -80,14 +81,18 @@ export class RequestHelper {
 
         let headers : any = additionalHeaders || {};
 
-        if( Constants.SECURITY_NTLM == config.authenticationType || Constants.SECURITY_DIGEST == config.authenticationType){
+        if( Constants.SECURITY_NTLM == config.authenticationType || Constants.SECURITY_DIGEST == config.authenticationType || Constants.SECURITY_MODERN == config.authenticationType){
             headers['X-RequestDigest'] = digest
         }
 
         return headers;
     }
 
-    static createRequest(appManager : IAppManager, config : IConfig) : spRequest.ISPRequest {
+    static createRequest(appManager : IAppManager, config : IConfig) : any {
+        if( Constants.SECURITY_MODERN == config.authenticationType){
+            return new BearerSPRequest(appManager.credentials.accessToken);
+        }
+
         if( Constants.SECURITY_NTLM == config.authenticationType){
             process.env['_sp_request_headers'] = JSON.stringify({
                 'X-FORMS_BASED_AUTH_ACCEPTED': 'f'

@@ -1,0 +1,10 @@
+{
+    "name": "spgo-modern-auth-probe",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Standalone check of whether Entra ID / SharePoint Online currently allow a modern (MFA-capable) OAuth login for the SPGo modern-auth fork, independent of the VS Code extension build. Zero dependencies - speaks the OAuth device-code protocol directly so AADSTS errors come through unmodified.",
+    "main": "entra-access-probe.js",
+    "scripts": {
+        "probe": "node entra-access-probe.js"
+    }
+}

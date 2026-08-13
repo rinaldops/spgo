@@ -6,6 +6,7 @@ import { Constants } from '../constants';
 import { IAppManager, IConfig } from '../spgo';
 import { CredentialDao } from '../dao/credentialDao';
 import { RequestHelper } from '../util/requestHelper'
+import { ModernAuthService } from './modernAuthService';
 
 export class AuthenticationService{
 	
@@ -27,6 +28,11 @@ export class AuthenticationService{
 					return getClientId(appManager)
 						.then((mgr : IAppManager) => getClientSecret(mgr))
 						.then((mgr : IAppManager) => getRealm(mgr))
+						.then((mgr : IAppManager) => verify(mgr))
+						.then((mgr : IAppManager) => processNextCommand(mgr));
+				}
+				else if( config.authenticationType === Constants.SECURITY_MODERN ){
+					return ModernAuthService.acquireToken(appManager, config)
 						.then((mgr : IAppManager) => verify(mgr))
 						.then((mgr : IAppManager) => processNextCommand(mgr));
 				}
@@ -156,8 +162,8 @@ export class AuthenticationService{
 
 				spr.requestDigest(config.sharePointSiteUrl)
 					.then(() => { //response => {
-						//store credentials?
-						if(config.storeCredentials){//} && config.authenticationType !== Constants.SECURITY_ADDIN){
+						//store credentials? (Modern auth tokens are short-lived and cached in-memory by MSAL instead - never written to disk)
+						if(config.storeCredentials && config.authenticationType !== Constants.SECURITY_MODERN){
 							CredentialDao.setCredentials(config.sharePointSiteUrl, appManager.credentials);
 						}
 						resolve(appManager);

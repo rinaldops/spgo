@@ -138,6 +138,10 @@ export class ConfigureWorkspaceCommand implements ICommand {
                 description: 'Impersonate an Addin - common for governance or when 2FA has been enabled.',
                 label: 'Addin Only',
                 detail: Constants.SECURITY_ADDIN
+            }, {
+                description: 'Interactive OAuth device-code login (MSAL). The only mode that supports MFA/Conditional Access.',
+                label: 'Modern (OAuth / MFA)',
+                detail: Constants.SECURITY_MODERN
             }
         ];
         return vscode.window.showQuickPick(options, quickPickOptions).then((res: vscode.QuickPickItem) => {

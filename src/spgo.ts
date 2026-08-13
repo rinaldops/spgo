@@ -41,6 +41,11 @@ export interface ICredential{
     clientId? : string;
     clientSecret? : string;
     realm? : string;
+
+    //Modern Authentication (OAuth / MFA), in-memory only for the VS Code session
+    accessToken? : string;
+    accessTokenExpiresOn? : Date;
+    msalAccount? : any;
 }
 
 export interface ICommand{
@@ -74,6 +79,10 @@ export interface IFileGateway {
     getFileInformation( fileUri : Uri, spr : ISPRequest ) : Promise<any>;
     undoCheckOutFile(fileUri : Uri, spr : ISPRequest ) : Promise<any>;
     uploadFiles(coreOptions : ICoreOptions, credentials : IAuthOptions, fileOptions : FileOptions) : Promise<any>;
+
+    // Modern Authentication (Bearer token) equivalents - bypass spsave/sppull, which have no OAuth/MFA strategy.
+    uploadFileModern(fileUri : Uri, fileBuffer : Buffer, spr : ISPRequest, checkin : boolean, checkinType : number, checkinMessage : string) : Promise<any>;
+    downloadFileModern(fileUri : Uri, spr : ISPRequest, localDestPath : string) : Promise<any>;
 }
 
 export interface IPublishingAction{

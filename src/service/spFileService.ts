@@ -1,5 +1,7 @@
 'use strict';
 
+import * as fse from 'fs-extra';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { Uri } from 'vscode';
@@ -44,6 +46,13 @@ export class SPFileService{
 
     public downloadFiles(siteUrl: Uri, remoteFolder : string) : Promise<any>{
 
+        // sppull (bulk folder download - populateWorkspace/retrieveFolder) has no OAuth/MFA
+        // strategy and hasn't been ported yet. Use single-file commands (checkOutFile,
+        // getServerVersion, publishMajor/Minor) under Modern auth for now.
+        if( this._config.authenticationType === Constants.SECURITY_MODERN ){
+            return Promise.reject('Bulk folder download (populateWorkspace/retrieveFolder) is not yet supported with Modern authentication. Use per-file commands instead.');
+        }
+
         //format the remote folder to /<folder structure>/
         remoteFolder = UrlHelper.ensureLeadingWebSlash(remoteFolder);
         let factory : DownloadFileOptionsFactory = new DownloadFileOptionsFactory(remoteFolder);
@@ -64,6 +73,15 @@ export class SPFileService{
         let remoteFolder : string = FileHelper.getFolderFromPath(filePath, this._config);
         let remoteFileUri : Uri = UrlHelper.getServerRelativeFileUri(filePath.fsPath, this._config);
         let sharePointSiteUrl : Uri = WorkspaceHelper.getSiteUriForActiveWorkspace(remoteFileUri.path, this._config);
+
+        if( this._config.authenticationType === Constants.SECURITY_MODERN ){
+            let spr : ISPRequest = RequestHelper.createRequest(vscode.window.spgo, this._config);
+            // mirrors sppull's local mapping: <downloadFilePath>/<file path relative to the workspace source root>
+            let relativePath : string = filePath.fsPath.split(this._config.sourceRoot + path.sep)[1];
+            let localDestPath : string = path.join(downloadFilePath, relativePath);
+
+            return this._fileGateway.downloadFileModern(remoteFileUri, spr, localDestPath);
+        }
 
         let context : any = {
             siteUrl : sharePointSiteUrl.toString(),
@@ -104,6 +122,12 @@ export class SPFileService{
     //TODO: Test this function to work with custom publishWorkspaceOptions props.
     public publishWorkspace(publishingInfo : IPublishingAction) : Promise<any> {
 
+        // spsave (bulk workspace publish) has no OAuth/MFA strategy and hasn't been ported
+        // yet. Use per-file publish (SPGo: Publish a major/minor version) under Modern auth.
+        if( this._config.authenticationType === Constants.SECURITY_MODERN ){
+            return Promise.reject('Bulk workspace publish is not yet supported with Modern authentication. Publish files individually instead.');
+        }
+
         //let publishingOptions : IPublishWorkspaceOptions = this.buildPublishingOptions(this._config.publishWorkspaceOptions);
         let credentials : IAuthOptions = RequestHelper.createCredentials(vscode.window.spgo, this._config);
         let remoteFileUri : Uri = Uri.parse(`${this._config.sharePointSiteUrl}${this._config.publishWorkspaceOptions.destinationFolder}`);//UrlHelper.getServerRelativeFileUri(publishingOptions.globPattern, this._config);
@@ -131,6 +155,19 @@ export class SPFileService{
     }
 
     public uploadFilesToServer(publishingInfo : IPublishingAction) : Promise<any> {
+
+        if( this._config.authenticationType === Constants.SECURITY_MODERN ){
+            if( !UrlHelper.isFile(publishingInfo.contentUri) ){
+                return Promise.reject('Publishing a whole folder is not yet supported with Modern authentication. Publish files individually instead.');
+            }
+
+            let fileUri : Uri = UrlHelper.getServerRelativeFileUri(publishingInfo.contentUri, this._config);
+            let spr : ISPRequest = RequestHelper.createRequest(vscode.window.spgo, this._config);
+            let coreOptions : ICoreOptions = this.buildCoreUploadOptions(fileUri, publishingInfo);
+            let fileBuffer : Buffer = fse.readFileSync(publishingInfo.contentUri);
+
+            return this._fileGateway.uploadFileModern(fileUri, fileBuffer, spr, coreOptions.checkin, coreOptions['checkinType'] || 0, publishingInfo.message);
+        }
 
         let credentials : IAuthOptions = RequestHelper.createCredentials(vscode.window.spgo, this._config);
         let remoteFileUri : Uri = UrlHelper.getServerRelativeFileUri(publishingInfo.contentUri, this._config);

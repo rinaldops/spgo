@@ -4,9 +4,9 @@
         "name": "Chris Hasz",
         "url": "https://www.chrishasz.com"
     },
-    "name": "spgo",
-    "displayName": "SPGo",
-    "description": "A Lightweight, Open Source, SharePoint IDE for Visual Studio Code.",
+    "name": "spgo-modern-auth",
+    "displayName": "SPGo (Modern Auth Fork)",
+    "description": "A Lightweight, Open Source, SharePoint IDE for Visual Studio Code. Unofficial fork adding OAuth/MFA (Modern Authentication) support.",
     "keywords": [
         "SharePoint",
         "SharePoint Online",
@@ -15,7 +15,7 @@
         "ide",
         "multi-root ready"
     ],
-    "version": "1.8.0",
+    "version": "1.9.0",
     "publisher": "SiteGo",
     "icon": "assets/SiteGoLogo.png",
     "galleryBanner": {
@@ -250,6 +250,7 @@
         "webpack-cli": "^3.3.12"
     },
     "dependencies": {
+        "@azure/msal-node": "^2.16.2",
         "cpass": "^2.3.0",
         "fs-extra": "^8.1.0",
         "glob-to-regexp": "^0.4.1",
